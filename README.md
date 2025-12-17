@@ -156,6 +156,12 @@ Cela démarre :
 - Kafka Broker
 - Topic `notifications-topic` (créé automatiquement)
 
+Accéder à KafkaUi
+
+```bash
+http://localhost:8090
+```
+
 ---
 
 ### 6.2 Lancement du backend Spring Boot
