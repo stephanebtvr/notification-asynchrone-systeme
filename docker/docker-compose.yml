@@ -1,0 +1,91 @@
+services:
+  # Zookeeper : Gère la coordination du cluster Kafka
+  # Requis pour Kafka < 3.3 (mode legacy mais stable pour démos)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      # Port client pour les connexions Kafka
+      ZOOKEEPER_CLIENT_PORT: 2181
+      # Intervalle de vérification de santé (millisecondes)
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka-network
+
+  # Kafka Broker : Le serveur de messagerie principal
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      # Port externe pour les applications (Spring Boot)
+      - "9092:9092"
+      # Port interne pour la communication inter-brokers
+      - "9093:9093"
+    environment:
+      # ID unique du broker (important en mode cluster)
+      KAFKA_BROKER_ID: 1
+
+      # Adresse de Zookeeper pour la coordination
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # LISTENERS : Interfaces réseau que Kafka écoute
+      # PLAINTEXT : Protocole sans encryption (OK pour démo locale)
+      # PLAINTEXT_HOST : Pour connexions depuis l'hôte (ton PC)
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093,PLAINTEXT_HOST://0.0.0.0:9092
+
+      # ADVERTISED_LISTENERS : Adresses que Kafka communique aux clients
+      # localhost:9092 : Pour connexion depuis Spring Boot sur ton PC
+      # kafka:9093 : Pour connexion inter-conteneurs Docker
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093,PLAINTEXT_HOST://localhost:9092
+
+      # Mapping des noms de protocoles aux types de sécurité
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+
+      # Listener utilisé pour la communication inter-brokers
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Facteur de réplication par défaut (1 = pas de réplication, OK pour démo)
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+      # Durée de rétention des messages (1 heure = 3600000 ms)
+      # Réduit pour démo, production utiliserait 7 jours ou plus
+      KAFKA_LOG_RETENTION_MS: 3600000
+    networks:
+      - kafka-network
+    healthcheck:
+      # Vérifie que Kafka répond (important pour depends_on)
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Kafka UI : Interface web pour visualiser topics, messages (optionnel mais utile pour démo)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"
+    environment:
+      # Configuration du cluster à monitorer
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - kafka-network
+
+# Réseau partagé pour la communication inter-conteneurs
+networks:
+  kafka-network:
+    driver: bridge
