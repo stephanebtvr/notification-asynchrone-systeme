@@ -158,7 +158,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
              * - Ne JAMAIS utiliser "*" en production
              * - Préférer des URLs complètes plutôt que des patterns
              */
-            .setAllowedOriginPatterns(allowedOrigins)
+            .setAllowedOrigins("http://localhost:4200","http://127.0.0.1:4200", "http://127.0.0.1:5500")
             
             /**
              * withSockJS() : Active le fallback SockJS.
