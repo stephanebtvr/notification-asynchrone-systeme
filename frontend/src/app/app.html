@@ -1,0 +1,163 @@
+<div class="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Colonne 1 : Formulaire -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Envoyer une Notification</h2>
+
+        <form [formGroup]="notificationForm" (ngSubmit)="onSubmit()">
+          <!-- Titre -->
+          <div class="mb-5">
+            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+            <input
+              id="title"
+              type="text"
+              formControlName="title"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              [class.border-red-500]="
+                notificationForm.get('title')?.invalid && notificationForm.get('title')?.touched
+              "
+            />
+          </div>
+
+          <!-- Message -->
+          <div class="mb-5">
+            <label for="message" class="block text-sm font-medium text-gray-700 mb-1"
+              >Message</label
+            >
+            <textarea
+              id="message"
+              formControlName="message"
+              required
+              rows="4"
+              class="w-full px-4 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition resize-none"
+              [class.border-red-500]="
+                notificationForm.get('message')?.invalid && notificationForm.get('message')?.touched
+              "
+            ></textarea>
+          </div>
+
+          <!-- Type -->
+          <div class="mb-6">
+            <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <select
+              id="type"
+              formControlName="type"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+            >
+              <option value="INFO">INFO</option>
+              <option value="WARNING">WARNING</option>
+              <option value="ERROR">ERROR</option>
+            </select>
+          </div>
+
+          <!-- Bouton -->
+          <button
+            type="submit"
+            [disabled]="!notificationForm.valid"
+            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Envoyer
+          </button>
+        </form>
+
+        <div class="flex items-center justify-between mt-6 gap-6">
+          <!-- Badge d'état -->
+          <div class="shrink-0">
+            <span
+              class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium h-10 bg-green-100 text-green-800 data-[state=disconnected]:bg-red-100 data-[state=disconnected]:text-red-800 data-[state=connecting]:bg-gray-100 data-[state=connecting]:text-gray-800"
+              [attr.data-state]="
+                isConnected() ? 'connected' : isConnecting() ? 'connecting' : 'disconnected'
+              "
+            >
+              <span
+                class="h-3 w-3 rounded-full mr-2.5"
+                [ngClass]="{
+                  'bg-green-500': isConnected(),
+                  'bg-red-500': !isConnected() && !isConnecting(),
+                  'bg-gray-400': isConnecting()
+                }"
+              ></span>
+              WebSocket :
+              {{ isConnected() ? 'Connecté' : isConnecting() ? 'Connexion...' : 'Déconnecté' }}
+            </span>
+          </div>
+
+          <!-- Boutons de connexion/déconnexion -->
+          <div class="flex justify-end shrink-0">
+            <!-- Bouton : Se connecter -->
+            @if (!isConnected() && !isConnecting()) {
+            <button
+              (click)="connectWebSocket()"
+              class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2 h-10 text-sm cursor-pointer"
+            >
+              <span>🔌</span>
+              <span>Se connecter</span>
+            </button>
+            }
+
+            <!-- Bouton : Connexion en cours -->
+            @else if (isConnecting()) {
+            <button
+              disabled
+              class="px-6 py-2 bg-gray-400 text-white font-semibold rounded-lg shadow-md cursor-not-allowed flex items-center space-x-2 h-10 text-sm"
+            >
+              <span class="animate-spin">⏳</span>
+              <span>Connexion...</span>
+            </button>
+            }
+
+            <!-- Bouton : Se déconnecter -->
+            @else {
+            <button
+              (click)="disconnectWebSocket()"
+              class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center space-x-2 h-10 text-sm cursor-pointer"
+            >
+              <span>🔌</span>
+              <span>Se déconnecter</span>
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Colonne 2 : Liste des notifications -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Notifications Reçues</h2>
+
+        <div *ngIf="notifications().length === 0" class="text-center text-gray-500 py-10">
+          Aucune notification pour l'instant
+        </div>
+
+        <div class="space-y-4">
+          <div
+            *ngFor="let notif of notifications()"
+            class="p-4 rounded-lg border-l-4 transition-all duration-300 hover:shadow-md"
+            [ngClass]="{
+              'border-blue-500 bg-blue-50': notif.type === 'INFO',
+              'border-yellow-500 bg-yellow-50': notif.type === 'WARNING',
+              'border-red-500 bg-red-50': notif.type === 'ERROR'
+            }"
+          >
+            <div class="flex justify-between items-start">
+              <h3 class="font-semibold text-gray-800">{{ notif.title }}</h3>
+              <span
+                class="px-2 py-1 text-xs font-bold rounded-full"
+                [ngClass]="{
+                  'bg-blue-600 text-white': notif.type === 'INFO',
+                  'bg-yellow-600 text-white': notif.type === 'WARNING',
+                  'bg-red-600 text-white': notif.type === 'ERROR'
+                }"
+              >
+                {{ notif.type }}
+              </span>
+            </div>
+            <p class="mt-2 text-gray-700">{{ notif.message }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <app-help></app-help>
+</div>

@@ -8,36 +8,45 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
+  "prettier": {
+    "printWidth": 100,
+    "singleQuote": true,
+    "overrides": [
+      {
+        "files": "*.html",
+        "options": {
+          "parser": "angular"
+        }
+      }
+    ]
+  },
   "private": true,
+  "packageManager": "npm@10.9.4",
   "dependencies": {
-    "@angular/animations": "^18.2.0",
-    "@angular/common": "^21.0.6",
-    "@angular/compiler": "^21.0.6",
-    "@angular/core": "^18.2.0",
-    "@angular/forms": "^21.0.6",
-    "@angular/platform-browser": "^21.0.6",
-    "@angular/platform-browser-dynamic": "^21.0.6",
-    "@angular/router": "^21.0.6",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
     "@stomp/stompjs": "^7.2.1",
+    "buffer": "^6.0.3",
+    "process": "^0.11.10",
     "rxjs": "~7.8.0",
     "sockjs-client": "^1.6.1",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.14.10"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^21.0.4",
+    "@angular/build": "^21.0.4",
     "@angular/cli": "^21.0.4",
-    "@angular/compiler-cli": "^21.0.6",
-    "@types/jasmine": "~5.1.0",
-    "autoprefixer": "^10.4.23",
-    "jasmine-core": "~5.2.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.10",
-    "typescript": "~5.5.2"
+    "@angular/compiler-cli": "^21.0.0",
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/node": "^25.0.3",
+    "@types/sockjs-client": "^1.5.4",
+    "jsdom": "^27.1.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.12",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
   }
 }
